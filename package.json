@@ -1,0 +1,32 @@
+{
+  "name": "testing-javascript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src",
+    "format": "npm run prettier -- --write",
+    "prettier": "prettier \"**/*.+(js|jsx|json|yml|yaml|css|less|scss|ts|tsx|md|graphql|mdx)\"",
+    "validate": "npm run lint && npm run prettier -- --list-different && npm run flow",
+    "flow": "flow",
+    "precommit": "npm run validate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amysimmons/testing-javascript.git"
+  },
+  "author": "Amy Simmons",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amysimmons/testing-javascript/issues"
+  },
+  "homepage": "https://github.com/amysimmons/testing-javascript#readme",
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.12.1",
+    "eslint-config-prettier": "^4.0.0",
+    "flow-bin": "^0.91.0",
+    "husky": "^1.3.1",
+    "prettier": "^1.16.1"
+  }
+}
