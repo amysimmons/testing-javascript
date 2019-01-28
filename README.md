@@ -183,10 +183,50 @@ We install Husky with `npm install --save-dev husky`. Note you need to have
 initialized a Git repository before installing Husky, as it puts a pre-commit
 file in our `.git` folder.
 
-### Adding the pre-commit script
+#### Adding the pre-commit script
 
 We add `"precommit": "npm run validate"` to our `package.json` scripts, so that
 our validate script runs when people attempt to commit their code.
+
+The commit will fail if there are any lint, prettier or flow errors.
+
+### Auto fixing ESLint and Prettier errors
+
+We can automatically fix ESLint and Prettier errors when a person commmits their
+code, rather than telling them where the errors are and having to fix it
+themselves. Flow however still needs to be run across all files, regardless of
+which ones have changed.
+
+#### Installing lint-staged
+
+We can run `npm install --save-dev lint-staged`.
+
+#### Editing our pre-commit script
+
+We can now edit our pre-commit script to run lint-staged and flow.
+
+```JavaScript
+"precommit": "lint-staged && npm run flow"
+```
+
+#### Configure lint-staged
+
+We add `.lintstagedrc` to our project and tell it to run ESLint for all files
+that end in .js. and Prettier for all the files that can be prettified.
+
+```JavaScript
+{
+  "linters": {
+    "*.js": [
+      "eslint"
+    ],
+    "*.+(js|jsx|json|yml|yaml|css|less|scss|ts|tsx|md|graphql|mdx)": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}
+```
 
 [0]: https://eslint.org/docs/about
 [1]: https://prettier.io/
