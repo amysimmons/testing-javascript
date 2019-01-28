@@ -1,8 +1,8 @@
 # Testing JavaScript
 
-## Static code analysis
+These are my notes from the [Testing JavaScript][6] course by Kent C. Dodds.
 
-note on what is static code analysis
+## [Static analysis testing JavaScript applications][5]
 
 ### ESLint
 
@@ -14,11 +14,9 @@ problems with our JavaScript code without executing it.
 `npm install --save-dev eslint will` add eslint to your `package.json` as a dev
 dependency.
 
-note on dev dependencies
-
 #### Configure ESLint
 
-we create a `.eslintrc` file to configure our ESLint.
+We create an `.eslintrc` file to configure our ESLint.
 
 ```JavaScript
 {
@@ -50,14 +48,15 @@ Now to run ESLint we can do `npm run lint`.
 
 #### Enable an ESLint plugin
 
-The plugin allows us to see errors as we are coding, without having to run the
-`npm run lint` in the terminal. I used 'ESLint - Integrates ESLint JavaScript
-into VS Code by Dirk Baeumer'.
+The plugin allows us to see errors as we are coding, without having to
+`npm run lint` in the terminal. I used the plugin named 'ESLint - Integrates
+ESLint JavaScript into VS Code by Dirk Baeumer'.
 
 ### Prettier
 
 [Prettier][1] is a code formatter that formats our code for us when we save
-changes.
+changes. It allows us to specify whether we want trailing commas, single or
+double quotes, tab width, etc.
 
 #### Install Prettier
 
@@ -82,7 +81,6 @@ We can then edit our `settings.json` to enable the format on save.
 
 ```JavaScript
 "editor.formatOnSave": true
-
 ```
 
 #### Configure Prettier
@@ -107,9 +105,7 @@ disable all the rules that Prettier renders irrelevant by installing
 
 #### Install eslint-config-prettier
 
-```JavaScript
-npm install --save-dev eslint-config-prettier.
-```
+We can `npm install --save-dev eslint-config-prettier`.
 
 Then in our `.eslintrc` we can add `eslint-config-prettier`.
 
@@ -119,12 +115,12 @@ Then in our `.eslintrc` we can add `eslint-config-prettier`.
 
 #### Which rules take priority over others
 
-The configurations that come at the end of 'extends' will win in a conflict with
-the configurations that come before it, so in this case `eslint-config-prettier`
-will win over `eslint:recommended`.
+The configurations that come at the end of the 'extends' arrray will win in a
+conflict with the configurations that come first in the array, so in this case
+`eslint-config-prettier` will win over `eslint:recommended`.
 
 Furthermore, rules specified by myself in the `.eslintrc` will win in a conflict
-with those in 'extends'.
+with those in 'extends', such as the no-console rule below:
 
 ```JavaScript
   "rules": {
@@ -172,10 +168,12 @@ prettier descrepencies.
   },
 ```
 
+But how do we ensure users run the validate script? That's where Husky comes in.
+
 ### Husky
 
 The above validation script can be automatically run when people commit their
-code by setting up a pre-commit hook with Husky.
+code by setting up a pre-commit hook with [Husky][7].
 
 #### Installing Husky
 
@@ -188,14 +186,17 @@ file in our `.git` folder.
 We add `"precommit": "npm run validate"` to our `package.json` scripts, so that
 our validate script runs when people attempt to commit their code.
 
-The commit will fail if there are any lint, prettier or flow errors.
+The commit will fail if there are any lint, prettier or flow errors, and the
+person will have to go and fix them.
+
+But it turns out for ESLint and Prettier, we can fix the errors for them.
 
 ### Auto fixing ESLint and Prettier errors
 
 We can automatically fix ESLint and Prettier errors when a person commmits their
 code, rather than telling them where the errors are and having to fix it
 themselves. Flow however still needs to be run across all files, regardless of
-which ones have changed.
+which ones have changed. To do this, we use `lint-staged`.
 
 #### Installing lint-staged
 
@@ -211,8 +212,8 @@ We can now edit our pre-commit script to run lint-staged and flow.
 
 #### Configure lint-staged
 
-We add `.lintstagedrc` to our project and tell it to run ESLint for all files
-that end in .js. and Prettier for all the files that can be prettified.
+We add a `.lintstagedrc` file to our project and tell it to run ESLint for all
+files that end in .js. and Prettier for all the files that can be prettified.
 
 ```JavaScript
 {
@@ -228,8 +229,16 @@ that end in .js. and Prettier for all the files that can be prettified.
 }
 ```
 
+Now, when a user who doesn't have ESLint or Prettier configured tries to commit
+code that can be automatically formatted for them, our pre-commit script will do
+so.
+
 [0]: https://eslint.org/docs/about
 [1]: https://prettier.io/
 [2]: https://www.npmjs.com/package/eslint-config-prettier
 [3]: https://prettier.io/playground/
 [4]: https://flow.org/en/
+[5]:
+  https://testingjavascript.com/courses/static-analysis-testing-javascript-applications
+[6]: https://testingjavascript.com/
+[7]: https://www.npmjs.com/package/husky
