@@ -148,6 +148,10 @@ ESLint doesn't understand Flow, so it will throw errors when using Flow syntax.
 To fix this, we `npm install --save-dev babel-eslint`, and add
 `parser: babel-eslint` to our `.eslintrc` file.
 
+I also was receiving the following error in my Flow files: "types can only be
+used in a .ts file". To fix that I added the Flow Language support plugin and
+disabled TypeScript. Solution outlined in this [Stack Overflow][8].
+
 ### Handling projects with multiple people
 
 What if someone working on our project doesn't have Prettier, ESLint or Flow set
@@ -233,6 +237,157 @@ Now, when a user who doesn't have ESLint or Prettier configured tries to commit
 code that can be automatically formatted for them, our pre-commit script will do
 so.
 
+## [JavaScript Mocking Fundamentals][9]
+
+### jest.fn()
+
+This is how `jest.fn` works under the hood:
+
+```JavaScript
+function fn(impl) {
+  const mockFn = (...args) => {
+    mockFn.mock.calls.push(args)
+    return impl(...args)
+  }
+  mockFn.mock = {calls: []}
+  return mockFn
+}
+```
+
+`fn` accepts an implementation function, `impl`, and returns a mock function,
+`mockFn`.
+
+When the code that you're testing is executed, `mockFn` gets called in place of
+your real function (see how `getWinner` is mocked in the usage example below).
+
+When `mockFn` gets called it does two things with the arguments that it
+receives:
+
+1. Calls `impl` with the arguments
+2. Keeps track of all the arguments it's called with in `mockFn.mock.calls` (see
+   why this is useful in the expect example below)
+
+#### fn usage example:
+
+```JavaScript
+test('returns winner', () => {
+  // keep hold of the original implementation
+  const originalGetWinner = utils.getWinner
+  // mock getWinner
+  utils.getWinner = jest.fn((p1, p2) => p1)
+
+  // make the test code run
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+
+  expect(winner).toBe('Kent C. Dodds')
+  // make assertions about what the mock is called with
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Kent C. Dodds', 'Ken Wheeler'],
+    ['Kent C. Dodds', 'Ken Wheeler']
+  ])
+
+  // reassign getWinnerr to its original value,
+  // so the mock implementation does not leak into subsequent tests
+  utils.getWinner = originalGetWinner
+})
+```
+
+### jest.spyOn
+
+With `jest.fn()` we had to keep track of the mock function's original
+implementation, so that we could restore it later.
+
+With `jest.spyOn`, keeping track of the original implementation is no longer
+necessary, as this is done for us.
+
+This is how `jest.spyOn` works under the hood (notice how internally it still
+calls `fn`):
+
+```JavaScript
+function spyOn(obj, prop) {
+  const originalValue = obj[prop]
+  obj[prop] = fn()
+  obj[prop].mockRestore = () => (obj[prop] = originalValue)
+}
+
+function fn(impl = () => {}) {
+  const mockFn = (...args) => {
+    mockFn.mock.calls.push(args)
+    return impl(...args)
+  }
+  mockFn.mock = {calls: []}
+  mockFn.mockImplementation = newImpl => (impl = newImpl)
+  return mockFn
+}
+```
+
+`spyOn` is a function that takes an object and a prop - the prop being the
+function that you are mocking.
+
+`spyOn` then does 3 things:
+
+1.  Keep track of the original value of the prop
+2.  Mock the prop by calling `fn`
+3.  Expose a `mockRestore` function, which reassigns the prop to its original
+    value
+
+The implementation of `fn` is now slightly different to above. It receives a
+default `impl` (an empty function), and adds a `mockImplementation` property
+`mockFn` (the function being mocked).
+
+#### spyOn usage example:
+
+```JavaScript
+const thumbWar = require('../thumb-war')
+const utils = require('../utils')
+
+test('returns winner', () => {
+  // make utils.getWinner a mocked function
+  jest.spyOn(utils, 'getWinner')
+  // mock the implementation
+  utils.getWinner.mockImplementation((p1, p2) => p1)
+
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+  expect(winner).toBe('Kent C. Dodds')
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Kent C. Dodds', 'Ken Wheeler'],
+    ['Kent C. Dodds', 'Ken Wheeler']
+  ])
+
+  // restore getWinner to its original value
+  utils.getWinner.mockRestore()
+})
+```
+
+## [Configure Jest for testing JavaScript Applications][10]
+
+### Installing Jest
+
+To install Jest into an existing project:
+
+```
+npm install --save-dev jest
+```
+
+In your `package.json` scripts add:
+
+```
+"test": "jest
+```
+
+Create a folder called `__tests__` (Jest will look here for tests to run) and a
+new test file.
+
+To run your tests you can do `npm run test`, `npm test`, or `npm t`.
+
+To make ESLint play nicely with Jest, in your `.eslintrc` add:
+
+```
+  "env": {
+    "jest": true
+  }
+```
+
 [0]: https://eslint.org/docs/about
 [1]: https://prettier.io/
 [2]: https://www.npmjs.com/package/eslint-config-prettier
@@ -242,3 +397,8 @@ so.
   https://testingjavascript.com/courses/static-analysis-testing-javascript-applications
 [6]: https://testingjavascript.com/
 [7]: https://www.npmjs.com/package/husky
+[8]:
+  https://stackoverflow.com/questions/48859169/js-types-can-only-be-used-in-a-ts-file-visual-studio-code-using-ts-check
+[9]: https://testingjavascript.com/courses/javascript-mocking-fundamentals
+[10]:
+  https://testingjavascript.com/courses/configure-jest-for-testing-javascript-applications
