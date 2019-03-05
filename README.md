@@ -359,6 +359,34 @@ test('returns winner', () => {
 })
 ```
 
+### jest.mock
+
+Instead of using `jest.spyOn`, which is mocking a single function in a file, we
+could mock the entire file with `jest.mock`. This is not something I've used
+very often myself, but am including it here for completeness.
+
+We can put this `jest.mock` call at the top of our test file, and Jest will
+ensure that our mock is used when the thumb-war requires the utils module.
+
+```
+jest.mock('../utils', () => {
+  return {
+    getWinner: jest.fn((p1, p2) => p1)
+  }
+})
+```
+
+These mocks can also be externalised in an `__mocks__` directory, which Jest
+loads automatically. This would allow the mocks to be shared across tests.
+
+#### mock usage example
+
+In our test, we would then clean up by doing:
+
+```
+utils.getWinner.mockReset()
+```
+
 ## [Configure Jest for testing JavaScript Applications][10]
 
 ### Installing Jest
