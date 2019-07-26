@@ -11,7 +11,7 @@ problems with our JavaScript code without executing it.
 
 #### Install ESLint
 
-`npm install --save-dev eslint will` add eslint to your `package.json` as a dev
+`npm install --save-dev eslint` will add eslint to your `package.json` as a dev
 dependency.
 
 #### Configure ESLint
